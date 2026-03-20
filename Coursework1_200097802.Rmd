@@ -1,0 +1,106 @@
+---
+title: "MTH6139 Time Series"
+subtitle: "Coursework 1 - Forecasting the GBP/USD Exchange Rate with Prophet"
+author: "Mohammad Ruhan-Ur Rahman"
+date: "Spring Term 2025"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    theme: spacelab
+    highlight: tango
+---
+ 
+```{r, echo=FALSE}
+htmltools::img(src = knitr::image_uri("images/QMlogo.png"),
+               alt = 'logo',
+               style = 'position:absolute; top:0; right:0; padding:10px; width:20%;')
+```
+
+# Introduction
+
+This project analyses the GBP/USD exchange rate using Meta's Prophet model. The aim is to identify trends and produce a short-term forecast.
+
+# Data and setup
+
+The data is daily GBP/USD exchange rates downloaded from Yahoo Finance.
+
+```{r message=FALSE, warning=FALSE}
+library(quantmod)
+library(prophet)
+library(ggplot2)
+
+getSymbols("GBPUSD=X", src = "yahoo", from = "2020-01-01")
+
+gbp_usd_data <- data.frame(
+  ds = as.Date(index(`GBPUSD=X`)),
+  y = as.numeric(Cl(`GBPUSD=X`))
+)
+```
+
+# Exploratory analysis
+
+```{r fig.width=10, fig.height=5}
+ggplot(gbp_usd_data, aes(x = ds, y = y)) +
+  geom_line() +
+  labs(title = "GBP/USD Exchange Rate", x = "Date", y = "Rate")
+```
+
+The series shows high volatility and no clear seasonal pattern.
+
+```{r}
+summary(lm(y ~ ds, data = gbp_usd_data))
+```
+
+A simple trend suggests the exchange rate changes over time but is unstable.
+
+# Prophet model
+
+```{r message=FALSE, warning=FALSE}
+model <- prophet(gbp_usd_data)
+
+future <- make_future_dataframe(model, periods = 30)
+
+forecast <- predict(model, future)
+```
+
+```{r fig.width=10, fig.height=6}
+plot(model, forecast)
+```
+
+The forecast shows short-term movement with wide uncertainty.
+
+```{r fig.width=10, fig.height=8}
+prophet_plot_components(model, forecast)
+```
+
+Trend is the main feature, with weak seasonality.
+
+# Alternative model
+
+```{r message=FALSE, warning=FALSE}
+model2 <- prophet(gbp_usd_data,
+                  weekly.seasonality = FALSE,
+                  yearly.seasonality = FALSE)
+
+forecast2 <- predict(model2, make_future_dataframe(model2, periods = 30))
+```
+
+```{r fig.width=10, fig.height=6}
+plot(model2, forecast2)
+```
+
+Removing seasonality does not change results much.
+
+# Discussion
+
+The GBP/USD series is more irregular than standard textbook time series. This means forecasts should be interpreted carefully, especially during periods of market uncertainty.
+
+# Conclusion
+
+GBP/USD shows volatility and weak seasonality. Prophet works well for visualising trends but forecasts should be interpreted carefully.
+
+# References
+
+- Prophet documentation: <https://facebook.github.io/prophet/docs/quick_start.html#r-api>
+- Yahoo Finance: <https://finance.yahoo.com>
