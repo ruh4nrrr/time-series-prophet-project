@@ -16,7 +16,7 @@ This project looks at the GBP/USD exchange rate using Prophet in R.
 
 ## Project file
 You can view the full report here:  
-https://yourusername.github.io/time-series-prophet-project/
+ https://ruh4nrrr.github.io/time-series-prophet-project/
 
 ## Tools used
 - R  
